@@ -3,4 +3,9 @@
 
     <style name="Theme.BaarFlieger" parent="android:Theme.Material.Light.NoActionBar" />
 
+    <style name="Theme.SplashScreen" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/purple_200</item>
+        <item name="android:windowBackground">@mipmap/ic_launcher</item>
+    </style>
+
 </resources>

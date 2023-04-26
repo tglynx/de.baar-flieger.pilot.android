@@ -2,6 +2,7 @@ package de.baarflieger.pilot
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.ConnectivityManager
@@ -33,12 +34,30 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.lifecycleScope
 
 import de.baarflieger.pilot.ui.theme.BaarFliegerPrimary40
 import de.baarflieger.pilot.ui.theme.BaarFliegerSecondary40
+import kotlinx.coroutines.delay
 
 
 var loadURL = "https://pilot.baar-flieger.de/app/benutzer"
+
+@SuppressLint("CustomSplashScreen")
+class SplashActivity: ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+
+        super.onCreate(savedInstanceState)
+        lifecycleScope.launchWhenCreated {
+            delay(1000)
+
+            val intent = Intent(this@SplashActivity, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+    }
+
+}
 
 class MainActivity : ComponentActivity() {
 
