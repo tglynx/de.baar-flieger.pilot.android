@@ -215,6 +215,18 @@ fun WebViewPage(url: String){
                         openFullDialogCustom.value = false
                     }
 
+                    override fun shouldOverrideUrlLoading(
+                        view: WebView,
+                        request: WebResourceRequest
+                    ): Boolean {
+                        return if(request.url.toString() == "https://pilot.baar-flieger.de/builder/apps") {
+                            view.loadUrl("https://pilot.baar-flieger.de/app/pilot/home")
+                            true
+                        } else {
+                            false
+                        }
+                    }
+
                 }
 
                 loadUrl(url)
