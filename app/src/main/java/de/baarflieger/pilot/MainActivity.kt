@@ -9,7 +9,6 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.ViewGroup
 import android.webkit.*
 import androidx.activity.ComponentActivity
@@ -35,7 +34,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.lifecycleScope
-
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import de.baarflieger.pilot.ui.theme.BaarFliegerPrimary40
 import de.baarflieger.pilot.ui.theme.BaarFliegerSecondary40
 import kotlinx.coroutines.delay
@@ -77,6 +76,12 @@ fun WebViewPage(url: String){
 
     val openFullDialogCustom = remember { mutableStateOf(false) }
     if (openFullDialogCustom.value) {
+
+        val systemUiController = rememberSystemUiController()
+
+        systemUiController.setSystemBarsColor(
+                color = BaarFliegerPrimary40
+        )
 
         // Dialog function
         Dialog(
@@ -185,9 +190,7 @@ fun WebViewPage(url: String){
 
                 settings.useWideViewPort = true
 
-
                 webViewClient = object : WebViewClient() {
-
 
                     override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                         super.onReceivedError(view, request, error)
