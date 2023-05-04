@@ -3,8 +3,8 @@
     <item
         android:drawable="@drawable/bg_gradient"/>
     <item>
-        android:width="200dp"
-        android:height="200dp"
+<!--        android:width="250dp"-->
+<!--        android:height="200dp"-->
         <bitmap android:gravity="center" android:src="@drawable/logo_splash"/>
     </item>
 </layer-list>

@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <!-- Required for animated icons
+        <item name="windowSplashScreenAnimationDuration">200</item>
+        -->
+        <item name="postSplashScreenTheme">@style/Theme.BaarFlieger</item>
+    </style>
+
     <style name="Theme.BaarFlieger" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@drawable/ic_splash</item>
         <item name="android:colorPrimary">@color/BaarFliegerPrimary</item>
@@ -10,3 +19,4 @@
     </style>
 
 </resources>
+
