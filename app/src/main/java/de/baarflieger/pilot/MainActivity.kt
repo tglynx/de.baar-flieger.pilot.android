@@ -57,6 +57,7 @@ var loadURL = "https://pilot.baar-flieger.de/app/benutzer"
 //
 //}
 
+@Suppress("UNUSED_VARIABLE") //for splashScreen
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
