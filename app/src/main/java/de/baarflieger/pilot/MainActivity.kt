@@ -14,6 +14,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -76,6 +77,8 @@ class MainActivity : ComponentActivity() {
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun WebViewPage(url: String){
+
+    var isLoading by remember { mutableStateOf(false) }
 
     val openFullDialogCustom = remember { mutableStateOf(false) }
     if (openFullDialogCustom.value) {
@@ -189,19 +192,24 @@ fun WebViewPage(url: String){
                 settings.domStorageEnabled = true
 
                 // to verify that the client requesting your web page is actually your Android app.
-                settings.userAgentString = System.getProperty("http.agent") //Dalvik/2.1.0 (Linux; U; Android 11; M2012K11I Build/RKQ1.201112.002)
+                settings.userAgentString =
+                    System.getProperty("http.agent") //Dalvik/2.1.0 (Linux; U; Android 11; M2012K11I Build/RKQ1.201112.002)
 
                 settings.useWideViewPort = true
 
                 webViewClient = object : WebViewClient() {
 
-                    override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                    override fun onReceivedError(
+                        view: WebView?,
+                        request: WebResourceRequest?,
+                        error: WebResourceError?
+                    ) {
                         super.onReceivedError(view, request, error)
                         //Log.d("test001","error")
 
-                        loadURL = if(isOnline(context)){
+                        loadURL = if (isOnline(context)) {
                             "file:///android_asset/error.html" // other error
-                        } else{
+                        } else {
                             "file:///android_asset/error.html" // no internet
                         }
 
@@ -210,20 +218,22 @@ fun WebViewPage(url: String){
                     }
 
                     override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
-                        openFullDialogCustom.value = true
+                        //openFullDialogCustom.value = true
+                        isLoading = true
                     }
 
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
-                        openFullDialogCustom.value = false
+                        //openFullDialogCustom.value = false
+                        isLoading = false
                     }
 
                     override fun shouldOverrideUrlLoading(
                         view: WebView,
                         request: WebResourceRequest
                     ): Boolean {
-                        return if(request.url.toString() == "https://pilot.baar-flieger.de/builder/apps") {
-                            view.loadUrl("https://pilot.baar-flieger.de/app/pilot/home")
+                        return if (request.url.toString() == "https://pilot.baar-flieger.de/builder/apps") {
+                            view.loadUrl("https://pilot.baar-flieger.de/app/piloten")
                             true
                         } else {
                             false
@@ -235,7 +245,18 @@ fun WebViewPage(url: String){
                 loadUrl(url)
 
             }
-        })
+
+        }
+    )
+
+    if (isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    }
 
     if (mutableStateTrigger.value) {
         WebViewPage(loadURL)

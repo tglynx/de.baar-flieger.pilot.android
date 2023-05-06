@@ -3,7 +3,7 @@
 
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/white</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_app</item>
         <!-- Required for animated icons
         <item name="windowSplashScreenAnimationDuration">200</item>
         -->
@@ -11,7 +11,7 @@
     </style>
 
     <style name="Theme.BaarFlieger" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">@drawable/ic_splash</item>
+<!--        <item name="android:windowBackground">@drawable/ic_splash</item>-->
         <item name="android:colorPrimary">@color/BaarFliegerPrimary</item>
         <item name="android:colorPrimaryDark">@color/BaarFliegerPrimary</item>
         <item name="android:colorAccent">@color/BaarFliegerPrimary</item>
