@@ -12,51 +12,34 @@ import android.view.ViewGroup
 import android.webkit.*
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
+//import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+//import androidx.compose.material3.MaterialTheme
+//import androidx.compose.material3.Surface
+//import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
+//import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+//import androidx.compose.ui.res.painterResource
+//import androidx.compose.ui.text.font.FontWeight
+//import androidx.compose.ui.text.style.TextAlign
+//import androidx.compose.ui.unit.dp
+//import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+//import androidx.compose.ui.window.Dialog
+//import androidx.compose.ui.window.DialogProperties
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import de.baarflieger.pilot.ui.theme.BaarFliegerPrimary40
-import de.baarflieger.pilot.ui.theme.BaarFliegerSecondary40
+//import com.google.accompanist.systemuicontroller.rememberSystemUiController
+//import de.baarflieger.pilot.ui.theme.BaarFliegerPrimary40
+//import de.baarflieger.pilot.ui.theme.BaarFliegerSecondary40
 
 
 var loadURL = "https://pilot.baar-flieger.de/app/benutzer"
-
-//@SuppressLint("CustomSplashScreen")
-//class SplashActivity: ComponentActivity() {
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//
-//        super.onCreate(savedInstanceState)
-//
-//        lifecycleScope.launchWhenCreated {
-//            delay(1000)
-//
-//            val intent = Intent(this@SplashActivity, MainActivity::class.java)
-//            startActivity(intent)
-//            finish()
-//        }
-//    }
-//
-//}
 
 @Suppress("UNUSED_VARIABLE") //for splashScreen
 class MainActivity : ComponentActivity() {
@@ -68,7 +51,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             WebViewPage(loadURL)
-            //WebViewPage("file:///android_asset/shop.html") //OFFLINE
         }
     }
     }
@@ -78,9 +60,15 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WebViewPage(url: String){
 
-    var isLoading by remember { mutableStateOf(false) }
+    val context  = LocalContext.current
+    val configuration = LocalConfiguration.current
 
-    val openFullDialogCustom = remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+    val isOffline = remember { mutableStateOf(false) }
+
+    //Custom Dialog (legacy loading indicator)
+/*    val openFullDialogCustom = remember { mutableStateOf(false) }
+
     if (openFullDialogCustom.value) {
 
         val systemUiController = rememberSystemUiController()
@@ -89,7 +77,7 @@ fun WebViewPage(url: String){
                 color = BaarFliegerPrimary40
         )
 
-        // Dialog function
+        // Custom Dialog
         Dialog(
             onDismissRequest = {
                 openFullDialogCustom.value = false
@@ -153,15 +141,7 @@ fun WebViewPage(url: String){
             }
         }
 
-    }
-    //..........................................................................
-
-
-    val context  = LocalContext.current
-
-
-    //The Configuration object represents all of the current configurations, not just the ones that have changed.
-    val configuration = LocalConfiguration.current
+    }*/
 
     when (configuration.orientation) {
         Configuration.ORIENTATION_LANDSCAPE -> {
@@ -172,8 +152,6 @@ fun WebViewPage(url: String){
         }
     }
 
-    val mutableStateTrigger = remember { mutableStateOf(false) }
-
     // Adding a WebView inside AndroidView
     // with layout as full screen
     AndroidView(
@@ -183,6 +161,7 @@ fun WebViewPage(url: String){
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
+
                 webViewClient = WebViewClient()
 
                 // to play video on a web view
@@ -205,15 +184,15 @@ fun WebViewPage(url: String){
                         error: WebResourceError?
                     ) {
                         super.onReceivedError(view, request, error)
-                        //Log.d("test001","error")
+                        //Log.d("onReceivedError",error)
 
                         loadURL = if (isOnline(context)) {
-                            "file:///android_asset/error.html" // other error
+                            "file:///android_asset/error.html"
                         } else {
-                            "file:///android_asset/error.html" // no internet
+                            "file:///android_asset/error.html"
                         }
 
-                        mutableStateTrigger.value = true
+                        isOffline.value = true
 
                     }
 
@@ -258,7 +237,7 @@ fun WebViewPage(url: String){
         }
     }
 
-    if (mutableStateTrigger.value) {
+    if (isOffline.value) {
         WebViewPage(loadURL)
     }
 
