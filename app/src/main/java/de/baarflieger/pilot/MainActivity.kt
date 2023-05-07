@@ -17,7 +17,7 @@ import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
+//import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -35,8 +35,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
+//import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
@@ -67,7 +69,7 @@ class MainActivity : ComponentActivity() {
 fun WebViewPage(url: String){
 
     val context  = LocalContext.current
-    val configuration = LocalConfiguration.current
+    //val configuration = LocalConfiguration.current
 
     var isLoading by remember { mutableStateOf(false) }
     val isOffline = remember { mutableStateOf(false) }
@@ -149,14 +151,14 @@ fun WebViewPage(url: String){
 
     }*/
 
-    when (configuration.orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> {
-            // Toast.makeText(context, "landscape", Toast.LENGTH_SHORT).show()
-        }
-        else -> {
-            //Toast.makeText(context, "portrait", Toast.LENGTH_SHORT).show()
-        }
-    }
+//    when (configuration.orientation) {
+//        Configuration.ORIENTATION_LANDSCAPE -> {
+//            Toast.makeText(context, "landscape", Toast.LENGTH_SHORT).show()
+//        }
+//        else -> {
+//            Toast.makeText(context, "portrait", Toast.LENGTH_SHORT).show()
+//        }
+//    }
 
     // Adding a WebView inside AndroidView
     // with layout as full screen
@@ -265,7 +267,12 @@ fun WebViewPage(url: String){
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(
+                color = colorResource(R.color.BaarFliegerPrimary),
+                modifier = Modifier
+                    .size(50.dp)
+                    .align(Alignment.Center)
+            )
         }
     }
 
