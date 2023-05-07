@@ -224,19 +224,18 @@ fun WebViewPage(url: String){
                             true
                         } else {
 
-                            return false;
+                            return false
 
                         }
                     }
 
                     override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-                        val url = request.url.toString()
 
                         // check for pdf asset access -> redirect to PDF intent
                         if (request.url.toString().startsWith("https://pilot.baar-flieger.de/files/signed/prod-budi-app-assets/app_eacc1f2abe4746f2b0d98888da2aa3cf/attachments", ignoreCase = true)) {
                             try {
                                 val intent = Intent(Intent.ACTION_VIEW)
-                                intent.setDataAndType(Uri.parse(url), "application/pdf")
+                                intent.setDataAndType(Uri.parse(request.url.toString()), "application/pdf")
                                 //intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                                 view.context.startActivity(intent)
 
