@@ -1,39 +1,45 @@
 package de.baarflieger.pilot
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.content.res.Configuration
-import android.graphics.Bitmap
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.os.Build
-import android.os.Bundle
-import android.view.ViewGroup
-import android.webkit.*
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 //import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.CircularProgressIndicator
 //import androidx.compose.material3.MaterialTheme
 //import androidx.compose.material3.Surface
 //import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.Modifier
 //import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 //import androidx.compose.ui.res.painterResource
 //import androidx.compose.ui.text.font.FontWeight
 //import androidx.compose.ui.text.style.TextAlign
 //import androidx.compose.ui.unit.dp
 //import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 //import androidx.compose.ui.window.Dialog
 //import androidx.compose.ui.window.DialogProperties
+
+import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.view.ViewGroup
+import android.webkit.*
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+
 //import com.google.accompanist.systemuicontroller.rememberSystemUiController
 //import de.baarflieger.pilot.ui.theme.BaarFliegerPrimary40
 //import de.baarflieger.pilot.ui.theme.BaarFliegerSecondary40
@@ -211,12 +217,39 @@ fun WebViewPage(url: String){
                         view: WebView,
                         request: WebResourceRequest
                     ): Boolean {
+
+                        // check for backend access link -> redirect to cockpit home
                         return if (request.url.toString() == "https://pilot.baar-flieger.de/builder/apps") {
                             view.loadUrl("https://pilot.baar-flieger.de/app/piloten")
                             true
                         } else {
-                            false
+
+                            return false;
+
                         }
+                    }
+
+                    override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+                        val url = request.url.toString()
+
+                        // check for pdf asset access -> redirect to PDF intent
+                        if (request.url.toString().startsWith("https://pilot.baar-flieger.de/files/signed/prod-budi-app-assets/app_eacc1f2abe4746f2b0d98888da2aa3cf/attachments", ignoreCase = true)) {
+                            try {
+                                val intent = Intent(Intent.ACTION_VIEW)
+                                intent.setDataAndType(Uri.parse(url), "application/pdf")
+                                //intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                                view.context.startActivity(intent)
+
+                                return super.shouldInterceptRequest(view, request)
+
+                            } catch (e: ActivityNotFoundException) {
+                                // Handle exception if no activity can handle the download intent
+                                Toast.makeText(view.context, "No app found to handle the download", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                        return super.shouldInterceptRequest(view, request)
+
                     }
 
                 }
@@ -241,29 +274,30 @@ fun WebViewPage(url: String){
         WebViewPage(loadURL)
     }
 
+
+
 }
 
+private fun isOnline(context: Context): Boolean {
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-    fun isOnline(context: Context): Boolean {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-        // For 29 api or above
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork) ?: return false
-            return when {
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ->    true
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ->   true
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ->   true
-                else ->     false
-            }
+    // For 29 api or above
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork) ?: return false
+        return when {
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ->    true
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ->   true
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ->   true
+            else ->     false
         }
-        // For below 29 api
-        else {
-            @Suppress("DEPRECATION")
-            if (connectivityManager.activeNetworkInfo != null && connectivityManager.activeNetworkInfo!!.isConnectedOrConnecting) {
-                return true
-            }
-        }
-        return false
-
     }
+    // For below 29 api
+    else {
+        @Suppress("DEPRECATION")
+        if (connectivityManager.activeNetworkInfo != null && connectivityManager.activeNetworkInfo!!.isConnectedOrConnecting) {
+            return true
+        }
+    }
+    return false
+
+}
