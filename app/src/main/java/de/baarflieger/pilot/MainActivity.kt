@@ -33,7 +33,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
+//import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 //import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -63,10 +63,12 @@ class MainActivity : ComponentActivity() {
     }
     }
 
-@OptIn(ExperimentalComposeUiApi::class)
+//@OptIn(ExperimentalComposeUiApi::class)
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun WebViewPage(url: String){
+
+    val webViewState: MutableState<WebView?> = remember { mutableStateOf(null) }
 
     val context  = LocalContext.current
     //val configuration = LocalConfiguration.current
@@ -178,6 +180,9 @@ fun WebViewPage(url: String){
                 // to enable local storage for budibase client library
                 settings.domStorageEnabled = true
 
+                // Enable caching
+                settings.cacheMode = WebSettings.LOAD_DEFAULT
+
                 // to verify that the client requesting your web page is actually your Android app.
                 settings.userAgentString =
                     System.getProperty("http.agent") //Dalvik/2.1.0 (Linux; U; Android 11; M2012K11I Build/RKQ1.201112.002)
@@ -259,6 +264,13 @@ fun WebViewPage(url: String){
 
             }
 
+        },
+        update = { webView ->
+            // Store the updated WebView instance in the state
+            webViewState.value = webView
+
+            // Load the URL if the WebView is not null
+            webViewState.value?.loadUrl(url)
         }
     )
 
