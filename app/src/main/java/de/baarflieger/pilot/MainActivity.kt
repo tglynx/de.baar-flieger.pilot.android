@@ -13,11 +13,15 @@ package de.baarflieger.pilot
 //import androidx.compose.ui.window.Dialog
 //import androidx.compose.ui.window.DialogProperties
 
+//import android.content.res.Configuration
+//import androidx.compose.ui.ExperimentalComposeUiApi
+//import androidx.compose.ui.platform.LocalConfiguration
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-//import android.content.res.Configuration
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -33,14 +37,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-//import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-//import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+
 
 //import com.google.accompanist.systemuicontroller.rememberSystemUiController
 //import de.baarflieger.pilot.ui.theme.BaarFliegerPrimary40
@@ -48,6 +51,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
 
 var loadURL = "https://pilot.baar-flieger.de/app/benutzer"
+var versionName = ""
 
 @Suppress("UNUSED_VARIABLE") //for splashScreen
 class MainActivity : ComponentActivity() {
@@ -56,12 +60,25 @@ class MainActivity : ComponentActivity() {
 
         val splashScreen = installSplashScreen()
 
+        // Get the package info
+        val packageInfo: PackageInfo = packageManager.getPackageInfoCompat(packageName, 0)
+        // Get the version name
+        versionName = packageInfo.versionName
+
         super.onCreate(savedInstanceState)
         setContent {
             WebViewPage(loadURL)
         }
     }
-    }
+
+    private fun PackageManager.getPackageInfoCompat(packageName: String, flags: Int = 0): PackageInfo =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(flags.toLong()))
+        } else {
+            @Suppress("DEPRECATION") getPackageInfo(packageName, flags)
+        }
+
+}
 
 //@OptIn(ExperimentalComposeUiApi::class)
 @SuppressLint("SetJavaScriptEnabled")
@@ -172,8 +189,6 @@ fun WebViewPage(url: String){
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
 
-                webViewClient = WebViewClient()
-
                 // to play video on a web view
                 settings.javaScriptEnabled = true
 
@@ -188,6 +203,16 @@ fun WebViewPage(url: String){
                     System.getProperty("http.agent") //Dalvik/2.1.0 (Linux; U; Android 11; M2012K11I Build/RKQ1.201112.002)
 
                 settings.useWideViewPort = true
+
+//                addJavascriptInterface(object {
+//                    @JavascriptInterface
+//                    fun openPdf(url: String) {
+//                        val intent = Intent(Intent.ACTION_VIEW)
+//                        intent.setDataAndType(Uri.parse(url), "application/pdf")
+//                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+//                        context.startActivity(intent)
+//                    }
+//                }, "AndroidInterface")
 
                 webViewClient = object : WebViewClient() {
 
@@ -217,6 +242,46 @@ fun WebViewPage(url: String){
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
                         //openFullDialogCustom.value = false
+
+//                        var javascriptCode = """
+//                                            // Override the default behavior of opening PDF files
+//
+//                                            window.addEventListener('click', function(event) {
+//                                              var target = event.target;
+//
+//                                            var links = document.getElementsByTagName('a');
+//                                            for (var i = 0; i < links.length; i++) {
+//                                                console.log(links[i]);
+//                                                links[i].removeAttribute('target');
+//                                                links[i].removeAttribute('download');
+//                                            }
+//
+//                                              console.log('Intercepted request:', event.target.outerHTML);
+//                                              if (target.tagName === 'A' && target.href.toLowerCase().includes('app_eacc1f2abe4746f2b0d98888da2aa3cf/attachments')) {
+//                                                // Intercept PDF file requests and communicate with the Android app
+//                                                event.preventDefault();
+//                                                AndroidInterface.openPdf(target.href);
+//                                              }
+//                                            });
+//
+//                                            """
+//
+//                        view?.evaluateJavascript(javascriptCode, null)
+//
+//                        javascriptCode = """
+//
+//                                                //Array.from(document.querySelectorAll('a[target="_blank"]')).forEach(link => link.removeAttribute('target'));
+//
+//                                                    var links = document.getElementsByTagName('a');
+//                                                    for (var i = 0; i < links.length; i++) {
+//                                                        console.log(links[i]);
+//                                                        links[i].removeAttribute('target');
+//                                                    }
+//
+//                                             """.trimIndent()
+//
+//                        view?.evaluateJavascript(javascriptCode, null)
+
                         isLoading = false
                     }
 
@@ -227,9 +292,31 @@ fun WebViewPage(url: String){
 
                         // check for backend access link -> redirect to cockpit home
                         return if (request.url.toString() == "https://pilot.baar-flieger.de/builder/apps") {
-                            view.loadUrl("https://pilot.baar-flieger.de/app/piloten")
+                            //view.loadUrl("https://pilot.baar-flieger.de/app/piloten")
+
+                            Toast.makeText(view.context, "Baar-Flieger Android App Version $versionName", Toast.LENGTH_SHORT).show()
+
                             true
+
                         } else {
+
+                            if (request.url.toString().startsWith("https://pilot.baar-flieger.de/files/signed/prod-budi-app-assets/app_eacc1f2abe4746f2b0d98888da2aa3cf/attachments", ignoreCase = true)) {
+
+                                try {
+
+                                    val intent = Intent(Intent.ACTION_VIEW)
+                                    intent.setDataAndType(Uri.parse(request.url.toString()), "application/pdf")
+                                    //intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                                    view.context.startActivity(intent)
+
+                                } catch (e: ActivityNotFoundException) {
+                                    // Handle exception if no activity can handle the download intent
+                                    Toast.makeText(view.context, "Es wurde keine Standard Applikation für die PDF Darstellung gefunden.", Toast.LENGTH_SHORT).show()
+
+                                }
+
+                                return true
+                            }
 
                             return false
 
@@ -250,12 +337,36 @@ fun WebViewPage(url: String){
 
                             } catch (e: ActivityNotFoundException) {
                                 // Handle exception if no activity can handle the download intent
-                                Toast.makeText(view.context, "No app found to handle the download", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(view.context, "Es wurde keine Standard Applikation für die PDF Darstellung gefunden.", Toast.LENGTH_SHORT).show()
                             }
                         }
 
                         return super.shouldInterceptRequest(view, request)
 
+                    }
+
+                    override fun onPageCommitVisible(view: WebView, url: String?) {
+                        super.onPageCommitVisible(view, url)
+
+                        // Inject JavaScript code to continuously monitor and modify links (remove target and download tags)
+                        view.loadUrl(
+                            "javascript:(function() {" +
+                                    "   var observer = new MutationObserver(function(mutations) {" +
+                                    "       mutations.forEach(function(mutation) {" +
+                                    "           if (mutation.addedNodes) {" +
+                                    "               for (var i = 0; i < mutation.addedNodes.length; i++) {" +
+                                    "                   var node = mutation.addedNodes[i];" +
+                                    "                   if (node.tagName === 'A') {" +
+                                    "                       node.removeAttribute('target');" +
+                                    "                       node.removeAttribute('download');" +
+                                    "                   }" +
+                                    "               }" +
+                                    "           }" +
+                                    "       });" +
+                                    "   });" +
+                                    "   observer.observe(document.body, { childList: true, subtree: true });" +
+                                    "})()"
+                        )
                     }
 
                 }
