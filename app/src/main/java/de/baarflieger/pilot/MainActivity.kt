@@ -36,6 +36,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -85,6 +86,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WebViewPage(url: String){
 
+    var currentUrl by rememberSaveable { mutableStateOf(url) }
     val webViewState: MutableState<WebView?> = remember { mutableStateOf(null) }
 
     val context  = LocalContext.current
@@ -241,6 +243,7 @@ fun WebViewPage(url: String){
 
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
+
                         //openFullDialogCustom.value = false
 
 //                        var javascriptCode = """
@@ -282,7 +285,10 @@ fun WebViewPage(url: String){
 //
 //                        view?.evaluateJavascript(javascriptCode, null)
 
+                        currentUrl = view?.url ?: currentUrl
+
                         isLoading = false
+
                     }
 
                     override fun shouldOverrideUrlLoading(
@@ -371,7 +377,7 @@ fun WebViewPage(url: String){
 
                 }
 
-                loadUrl(url)
+                loadUrl(currentUrl)
 
             }
 
@@ -381,7 +387,7 @@ fun WebViewPage(url: String){
             webViewState.value = webView
 
             // Load the URL if the WebView is not null
-            webViewState.value?.loadUrl(url)
+            webViewState.value?.loadUrl(currentUrl)
         }
     )
 
