@@ -1,21 +1,5 @@
 package de.baarflieger.pilot
 
-//import androidx.compose.foundation.Image
-//import androidx.compose.material3.MaterialTheme
-//import androidx.compose.material3.Surface
-//import androidx.compose.material3.Text
-//import androidx.compose.ui.layout.ContentScale
-//import androidx.compose.ui.res.painterResource
-//import androidx.compose.ui.text.font.FontWeight
-//import androidx.compose.ui.text.style.TextAlign
-//import androidx.compose.ui.unit.dp
-//import androidx.compose.ui.unit.sp
-//import androidx.compose.ui.window.Dialog
-//import androidx.compose.ui.window.DialogProperties
-
-//import android.content.res.Configuration
-//import androidx.compose.ui.ExperimentalComposeUiApi
-//import androidx.compose.ui.platform.LocalConfiguration
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -45,13 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 
-
-//import com.google.accompanist.systemuicontroller.rememberSystemUiController
-//import de.baarflieger.pilot.ui.theme.BaarFliegerPrimary40
-//import de.baarflieger.pilot.ui.theme.BaarFliegerSecondary40
-
-
-var loadURL = "https://pilot.baar-flieger.de/app/benutzer"
+var loadURL = "https://pilot.baar-flieger.de/app/piloten"
 var versionName = ""
 
 @Suppress("UNUSED_VARIABLE") //for splashScreen
@@ -95,92 +73,6 @@ fun WebViewPage(url: String){
     var isLoading by remember { mutableStateOf(false) }
     val isOffline = remember { mutableStateOf(false) }
 
-    //Custom Dialog (legacy loading indicator)
-/*    val openFullDialogCustom = remember { mutableStateOf(false) }
-
-    if (openFullDialogCustom.value) {
-
-        val systemUiController = rememberSystemUiController()
-
-        systemUiController.setSystemBarsColor(
-                color = BaarFliegerPrimary40
-        )
-
-        // Custom Dialog
-        Dialog(
-            onDismissRequest = {
-                openFullDialogCustom.value = false
-            },
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false // experimental
-            )
-        ) {
-            Surface(modifier = Modifier.fillMaxSize()) {
-
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-
-
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = null,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier
-                            .height(200.dp)
-                            .fillMaxWidth(),
-
-                        )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-                    //.........................Text: title
-                    Text(
-                        text = "Daten werden übertragen!",
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .padding(top = 20.dp)
-                            .fillMaxWidth(),
-                        letterSpacing = 2.sp,
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleLarge,
-                        //color = MaterialTheme.colorScheme.primary,
-                        color = BaarFliegerPrimary40
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    //.........................Text : description
-                    Text(
-                        text = "Bitte warten...",
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .padding(top = 10.dp, start = 25.dp, end = 25.dp)
-                            .fillMaxWidth(),
-                        letterSpacing = 3.sp,
-                        style = MaterialTheme.typography.bodyLarge,
-                        //color = MaterialTheme.colorScheme.primary,
-                        color = BaarFliegerSecondary40
-                    )
-                    //.........................Spacer
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                }
-
-            }
-        }
-
-    }*/
-
-//    when (configuration.orientation) {
-//        Configuration.ORIENTATION_LANDSCAPE -> {
-//            Toast.makeText(context, "landscape", Toast.LENGTH_SHORT).show()
-//        }
-//        else -> {
-//            Toast.makeText(context, "portrait", Toast.LENGTH_SHORT).show()
-//        }
-//    }
-
     // Adding a WebView inside AndroidView
     // with layout as full screen
     AndroidView(
@@ -205,16 +97,6 @@ fun WebViewPage(url: String){
                     System.getProperty("http.agent") //Dalvik/2.1.0 (Linux; U; Android 11; M2012K11I Build/RKQ1.201112.002)
 
                 settings.useWideViewPort = true
-
-//                addJavascriptInterface(object {
-//                    @JavascriptInterface
-//                    fun openPdf(url: String) {
-//                        val intent = Intent(Intent.ACTION_VIEW)
-//                        intent.setDataAndType(Uri.parse(url), "application/pdf")
-//                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-//                        context.startActivity(intent)
-//                    }
-//                }, "AndroidInterface")
 
                 webViewClient = object : WebViewClient() {
 
@@ -244,51 +126,20 @@ fun WebViewPage(url: String){
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
 
-                        //openFullDialogCustom.value = false
+                        if (url == "https://pilot.baar-flieger.de/app/piloten") {
+                            val cookieManager = CookieManager.getInstance()
+                            val cookies = cookieManager.getCookie(url)
 
-//                        var javascriptCode = """
-//                                            // Override the default behavior of opening PDF files
-//
-//                                            window.addEventListener('click', function(event) {
-//                                              var target = event.target;
-//
-//                                            var links = document.getElementsByTagName('a');
-//                                            for (var i = 0; i < links.length; i++) {
-//                                                console.log(links[i]);
-//                                                links[i].removeAttribute('target');
-//                                                links[i].removeAttribute('download');
-//                                            }
-//
-//                                              console.log('Intercepted request:', event.target.outerHTML);
-//                                              if (target.tagName === 'A' && target.href.toLowerCase().includes('app_eacc1f2abe4746f2b0d98888da2aa3cf/attachments')) {
-//                                                // Intercept PDF file requests and communicate with the Android app
-//                                                event.preventDefault();
-//                                                AndroidInterface.openPdf(target.href);
-//                                              }
-//                                            });
-//
-//                                            """
-//
-//                        view?.evaluateJavascript(javascriptCode, null)
-//
-//                        javascriptCode = """
-//
-//                                                //Array.from(document.querySelectorAll('a[target="_blank"]')).forEach(link => link.removeAttribute('target'));
-//
-//                                                    var links = document.getElementsByTagName('a');
-//                                                    for (var i = 0; i < links.length; i++) {
-//                                                        console.log(links[i]);
-//                                                        links[i].removeAttribute('target');
-//                                                    }
-//
-//                                             """.trimIndent()
-//
-//                        view?.evaluateJavascript(javascriptCode, null)
+                            if (cookies != null && cookies.contains("budibase:auth")) {
+                                // Cookie is present, do nothing
+                            } else {
+                                // Cookie is not present, redirect to the desired URL
+                                view?.loadUrl("https://pilot.baar-flieger.de/app/benutzer")
+                            }
+                        }
 
                         currentUrl = view?.url ?: currentUrl
-
                         isLoading = false
-
                     }
 
                     override fun shouldOverrideUrlLoading(
@@ -297,7 +148,7 @@ fun WebViewPage(url: String){
                     ): Boolean {
 
                         // check for backend access link -> redirect to cockpit home
-                        return if (request.url.toString() == "https://pilot.baar-flieger.de/builder/apps") {
+                        return if (request.url.toString().contains("/builder/")) {
                             //view.loadUrl("https://pilot.baar-flieger.de/app/piloten")
 
                             Toast.makeText(view.context, "Baar-Flieger Android App Version $versionName", Toast.LENGTH_SHORT).show()
