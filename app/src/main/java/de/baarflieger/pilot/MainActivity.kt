@@ -49,9 +49,9 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         versionName = try {
-            packageManager.getPackageInfoCompat(packageName, 0).versionName ?: ""
+            packageManager.getPackageInfoCompat(packageName, 0).versionName ?: "n/a"
         } catch (e: PackageManager.NameNotFoundException) {
-            ""
+            "not found"
         }
 
         setContent {
