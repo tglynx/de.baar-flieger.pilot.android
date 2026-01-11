@@ -1,14 +1,12 @@
 package de.baarflieger.pilot
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -23,13 +21,12 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 private const val PILOTEN_URL = "https://pilot.baar-flieger.de/app/piloten"
 private const val BENUTZER_URL = "https://pilot.baar-flieger.de/app/benutzer"
@@ -46,6 +43,7 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
+        // Enable edge-to-edge display
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         versionName = try {
@@ -55,12 +53,11 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            val systemUiController = rememberSystemUiController()
+            val view = LocalView.current
             SideEffect {
-                systemUiController.setSystemBarsColor(
-                    color = Color.Transparent,
-                    darkIcons = true
-                )
+                val window = (view.context as Activity).window
+                // window.statusBarColor = android.graphics.Color.TRANSPARENT
+                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
             }
 
             WebViewPage(
@@ -106,7 +103,8 @@ private fun WebViewPage(url: String, modifier: Modifier = Modifier) {
                     webViewClient = object : WebViewClient() {
                         override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                             super.onReceivedError(view, request, error)
-                            // Update state to trigger recomposition, avoids recursion
+                            // Log the error details to understand the cause
+                            android.util.Log.e("WebViewError", "Error loading '${request?.url}': ${error?.errorCode} - ${error?.description}")
                             if (currentUrl != ERROR_URL) {
                                 currentUrl = ERROR_URL
                             }
@@ -194,14 +192,4 @@ private fun WebViewPage(url: String, modifier: Modifier = Modifier) {
             )
         }
     }
-}
-
-private fun isOnline(context: Context): Boolean {
-    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    val network = connectivityManager.activeNetwork ?: return false
-    val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
-
-    return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
-            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
 }
