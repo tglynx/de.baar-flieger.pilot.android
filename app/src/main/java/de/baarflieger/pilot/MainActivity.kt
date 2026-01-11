@@ -23,12 +23,13 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 private const val PILOTEN_URL = "https://pilot.baar-flieger.de/app/piloten"
 private const val BENUTZER_URL = "https://pilot.baar-flieger.de/app/benutzer"
@@ -48,12 +49,20 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         versionName = try {
-            packageManager.getPackageInfoCompat(packageName, 0).versionName
+            packageManager.getPackageInfoCompat(packageName, 0).versionName ?: ""
         } catch (e: PackageManager.NameNotFoundException) {
             ""
         }
 
         setContent {
+            val systemUiController = rememberSystemUiController()
+            SideEffect {
+                systemUiController.setSystemBarsColor(
+                    color = Color.Transparent,
+                    darkIcons = true
+                )
+            }
+
             WebViewPage(
                 url = PILOTEN_URL,
                 modifier = Modifier
@@ -67,7 +76,7 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(flags.toLong()))
         } else {
-            getPackageInfo(packageName, flags)
+            @Suppress("DEPRECATION") getPackageInfo(packageName, flags)
         }
 }
 
@@ -75,8 +84,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun WebViewPage(url: String, modifier: Modifier = Modifier) {
 
-    var currentUrl by rememberSaveable { mutableStateOf(url) }
-    val context = LocalContext.current
+    var currentUrl by rememberSaveable { mutableStateOf<String?>(url) }
     var isLoading by remember { mutableStateOf(true) }
 
     Box(modifier = modifier) {
@@ -98,12 +106,10 @@ private fun WebViewPage(url: String, modifier: Modifier = Modifier) {
                     webViewClient = object : WebViewClient() {
                         override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                             super.onReceivedError(view, request, error)
-                            if (isOnline(context)) {
-                                currentUrl = ERROR_URL
-                            } else {
+                            // Update state to trigger recomposition, avoids recursion
+                            if (currentUrl != ERROR_URL) {
                                 currentUrl = ERROR_URL
                             }
-                            view?.loadUrl(currentUrl)
                         }
 
                         override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
@@ -119,7 +125,7 @@ private fun WebViewPage(url: String, modifier: Modifier = Modifier) {
                                     view?.loadUrl(BENUTZER_URL)
                                 }
                             }
-                            currentUrl = view?.url ?: currentUrl
+                            currentUrl = view?.url
                             isLoading = false
                         }
 
@@ -167,12 +173,14 @@ private fun WebViewPage(url: String, modifier: Modifier = Modifier) {
                             )
                         }
                     }
-                    loadUrl(currentUrl)
+                    currentUrl?.let { safeUrl -> loadUrl(safeUrl) }
                 }
             },
             update = { webView ->
                 if (webView.url != currentUrl) {
-                    webView.loadUrl(currentUrl)
+                    currentUrl?.let {
+                        webView.loadUrl(it)
+                    }
                 }
             }
         )
