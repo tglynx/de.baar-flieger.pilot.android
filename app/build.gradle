@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace 'de.baarflieger.pilot'
-    compileSdk 36
+    compileSdk 37
 
     defaultConfig {
         applicationId "de.baarflieger.pilot"
