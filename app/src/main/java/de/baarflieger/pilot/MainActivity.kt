@@ -77,7 +77,7 @@ class MainActivity : ComponentActivity() {
         }
 }
 
-@SuppressLint("SetJavaScriptEnabled")
+@SuppressLint("SetJavaScriptEnabled", "WebViewClientOnRenderProcessGone")
 @Composable
 private fun WebViewPage(url: String, modifier: Modifier = Modifier) {
 
@@ -103,13 +103,13 @@ private fun WebViewPage(url: String, modifier: Modifier = Modifier) {
                         }
 
                         webViewClient = object : WebViewClient() {
-                            override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
-                                val didCrash = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) detail?.didCrash() else "unknown"
+                            override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+                                val didCrash = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) detail.didCrash() else "unknown"
                                 android.util.Log.e("WebViewError", "Render process gone. Did crash: $didCrash")
-                                if (view?.isAttachedToWindow == true) {
+                                if (view.isAttachedToWindow) {
                                     (view.parent as? ViewGroup)?.removeView(view)
                                 }
-                                view?.destroy()
+                                view.destroy()
 
                                 currentUrl = ERROR_URL
                                 webViewKey++
